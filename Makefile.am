@@ -62,6 +62,7 @@ i3status_SOURCES = \
 	src/print_ip_addr.c \
 	src/print_ipv6_addr.c \
 	src/print_load.c \
+	src/print_mail.c \
 	src/print_mem.c \
 	src/print_path_exists.c \
 	src/print_run_watch.c \
