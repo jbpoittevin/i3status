@@ -8,7 +8,7 @@
 #include <dirent.h>
 #include <wordexp.h>
 
-#define STRING_SIZE 10
+#define STRING_SIZE 16
 #define MAIL_DIR "~/mail/inbox/new"
 
 void print_mail(yajl_gen json_gen, char *buffer, const char *format) {
