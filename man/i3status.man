@@ -660,6 +660,22 @@ can't be read "error read" will be printed.
 
 *Example Max_characters*: 255
 
+=== Mail
+
+Report number of new mail in specified mailboxes. Only support Maildir format.
+
+maildir::
+    The directory corresponding to the maildir (without the "/new" part).
+    The value is expanded following classical shell expansion, including
+    patterns corresponding to multiple maildirs.
+
+*Example configuration*:
+-------------------------------------------------------------
+mail {
+    maildir = "~/mail/*/INBOX"
+}
+-------------------------------------------------------------
+
 == Universal module options
 
 When using the i3bar output format, there are a few additional options that
