@@ -1,4 +1,4 @@
-#include <config.h>
+#include "config.h"
 #include "i3status.h"
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_version.h>
@@ -21,12 +21,14 @@ void print_mail(yajl_gen json_gen, char *buffer, const char *format,
     strncpy(raw_dirname + strlen(raw_dirname), "/new",
             sizeof raw_dirname - strlen(raw_dirname));
 
-    static DIR *d;
-    if (!d) {
+    static DIR **dirs;
+    static int nb_dir;
+
+    if (!dirs) {
         wordexp_t we;
         int rc;
 
-        rc = wordexp(maildir, &we, WRDE_NOCMD|WRDE_SHOWERR|WRDE_UNDEF);
+        rc = wordexp(raw_dirname, &we, WRDE_NOCMD|WRDE_SHOWERR|WRDE_UNDEF);
         if (rc != 0) {
             OUTPUT_FULL_TEXT("wordexp error");
             return;
@@ -35,25 +37,37 @@ void print_mail(yajl_gen json_gen, char *buffer, const char *format,
         if (we.we_wordc == 0) {
             OUTPUT_FULL_TEXT("MAIL_DIR expansion failed");
             return;
-        } else if (we.we_wordc > 1) {
-            OUTPUT_FULL_TEXT("MAIL_DIR expansion is ambiguous");
-            return;
         }
 
-        char *expanded_dirname = we.we_wordv[0];
+        nb_dir = we.we_wordc;
+        dirs = (DIR **) calloc(nb_dir, sizeof (DIR *));
 
-        if (!(d = opendir(expanded_dirname))) {
-            OUTPUT_FULL_TEXT("MAIL_DIR not found");
-            return;
+        if (dirs == NULL) {
+            perror("calloc");
+            exit(EXIT_FAILURE);
         }
 
+        for (int i=0 ; i<nb_dir ; i++) {
+            char *expanded_dirname = we.we_wordv[i];
+            DIR *d = opendir(expanded_dirname);
+            if (!d) {
+                OUTPUT_FULL_TEXT("MAIL_DIR not found");
+                return;
+            }
+            dirs[i] = d;
+        }
         wordfree(&we);
     } else {
-        rewinddir(d);
+        for (int i=0 ; i<nb_dir ; i++) rewinddir(dirs[i]);
     }
 
-    int nb_mail = -2;
-    while (readdir(d)) nb_mail++;
+    int nb_mail = 0;
+    for (int i=0 ; i<nb_dir ; i++) {
+        struct dirent *dirent_ptr;
+        while ((dirent_ptr = readdir(dirs[i]))) {
+            if (dirent_ptr->d_type == DT_REG) nb_mail++;
+        }
+    }
 
     char *plural = "";
     if (nb_mail > 1) plural = "s";
