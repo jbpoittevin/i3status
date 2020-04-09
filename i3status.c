@@ -511,6 +511,7 @@ int main(int argc, char *argv[]) {
 
     cfg_opt_t mail_opts[] = {
         CFG_STR("format", "%nb_mail", CFGF_NONE),
+        CFG_STR("maildir", "~/mail/inbox/new", CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
         CFG_CUSTOM_COLOR_OPTS,
         CFG_CUSTOM_MIN_WIDTH_OPT,
@@ -844,7 +845,7 @@ int main(int argc, char *argv[]) {
 
             CASE_SEC("mail") {
                 SEC_OPEN_MAP("mail");
-                print_mail(json_gen, buffer, cfg_getstr(sec, "format"));
+                print_mail(json_gen, buffer, cfg_getstr(sec, "format"), cfg_getstr(sec, "maildir"));
                 SEC_CLOSE_MAP;
             }
         }

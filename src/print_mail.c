@@ -4,22 +4,29 @@
 #include <yajl/yajl_version.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <wordexp.h>
+#include <linux/limits.h>
 
 #define STRING_SIZE 16
-#define MAIL_DIR "~/mail/inbox/new"
 
-void print_mail(yajl_gen json_gen, char *buffer, const char *format) {
+void print_mail(yajl_gen json_gen, char *buffer, const char *format,
+                const char *maildir) {
     char *outwalk = buffer;
-    static DIR *d;
 
+    char raw_dirname[PATH_MAX];
+    strncpy(raw_dirname, maildir, sizeof raw_dirname);
+    strncpy(raw_dirname + strlen(raw_dirname), "/new",
+            sizeof raw_dirname - strlen(raw_dirname));
+
+    static DIR *d;
     if (!d) {
         wordexp_t we;
         int rc;
 
-        rc = wordexp(MAIL_DIR, &we, WRDE_NOCMD|WRDE_SHOWERR|WRDE_UNDEF);
+        rc = wordexp(maildir, &we, WRDE_NOCMD|WRDE_SHOWERR|WRDE_UNDEF);
         if (rc != 0) {
             OUTPUT_FULL_TEXT("wordexp error");
             return;
@@ -54,7 +61,7 @@ void print_mail(yajl_gen json_gen, char *buffer, const char *format) {
     char string_nb_mail[STRING_SIZE];
     if (nb_mail > 0) {
         snprintf(string_nb_mail, sizeof string_nb_mail, "%d mail%s", nb_mail,
-                plural);
+                 plural);
     } else {
         string_nb_mail[0] = '\0';
     }
